@@ -1,7 +1,16 @@
 name: xue_hua_video_snapshot
 description: "Extract non-black cover candidate frames from video files across mobile and desktop platforms."
 version: 1.0.0
-homepage: https://jsontodart.cn
+homepage: https://github.com/Matkurban/xue_hua_video_snapshot
+repository: https://github.com/Matkurban/xue_hua_video_snapshot
+issue_tracker: https://github.com/Matkurban/xue_hua_video_snapshot/issues
+documentation: https://github.com/Matkurban/xue_hua_video_snapshot/blob/main/README.md
+changelog: https://github.com/Matkurban/xue_hua_video_snapshot/blob/main/CHANGELOG.md
+license: MIT
+license_file: LICENSE
+author_email: matkurban@gmail.com
+author_url: https://github.com/Matkurban
+author_github: Matkurban
 
 environment:
   sdk: ^3.12.0
