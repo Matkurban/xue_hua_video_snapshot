@@ -1,0 +1,35 @@
+name: xue_hua_video_snapshot
+description: "Extract non-black cover candidate frames from video files across mobile and desktop platforms."
+version: 1.0.0
+homepage: https://jsontodart.cn
+
+environment:
+  sdk: ^3.12.0
+  flutter: ^3.44.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  crypto: ^3.0.7
+  cross_file: ^0.3.5+2
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.kurban.xue_hua_video_snapshot
+        pluginClass: XueHuaVideoSnapshotPlugin
+      ios:
+        pluginClass: XueHuaVideoSnapshotPlugin
+      linux:
+        pluginClass: XueHuaVideoSnapshotPlugin
+      macos:
+        pluginClass: XueHuaVideoSnapshotPlugin
+      windows:
+        pluginClass: XueHuaVideoSnapshotPluginCApi
