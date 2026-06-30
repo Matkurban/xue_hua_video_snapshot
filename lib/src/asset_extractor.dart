@@ -14,11 +14,9 @@ typedef DefaultBundleResolver = AssetBundle Function();
 /// Injectable [tempDirectory] / [defaultBundle] make this module testable.
 /// Use [instance] from production code; replace via [debugReplaceInstance] in tests.
 class AssetExtractor {
-  AssetExtractor({
-    TempDirectoryResolver? tempDirectory,
-    DefaultBundleResolver? defaultBundle,
-  })  : _tempDirectory = tempDirectory ?? getTemporaryDirectory,
-        _defaultBundle = defaultBundle ?? (() => rootBundle);
+  AssetExtractor({TempDirectoryResolver? tempDirectory, DefaultBundleResolver? defaultBundle})
+    : _tempDirectory = tempDirectory ?? getTemporaryDirectory,
+      _defaultBundle = defaultBundle ?? (() => rootBundle);
 
   static AssetExtractor instance = AssetExtractor();
 
@@ -55,13 +53,10 @@ class AssetExtractor {
     return '$assetPath::${identityHashCode(bundle)}';
   }
 
-  String _inflightKey(String assetPath, AssetBundle bundle) =>
-      inflightKey(assetPath, bundle);
+  String _inflightKey(String assetPath, AssetBundle bundle) => inflightKey(assetPath, bundle);
 
   static String cacheFileName(String assetPath, AssetBundle bundle) {
-    final digest = sha1.convert(
-      '${identityHashCode(bundle)}:$assetPath'.codeUnits,
-    );
+    final digest = sha1.convert('${identityHashCode(bundle)}:$assetPath'.codeUnits);
     final baseName = assetPath.split('/').last;
     final safeName = baseName.isEmpty ? 'media' : baseName;
     return '${digest.toString()}-$safeName';
@@ -74,16 +69,35 @@ class AssetExtractor {
       await root.create(recursive: true);
     }
     final outPath = '${root.path}/${cacheFileName(assetPath, bundle)}';
-    final file = File(outPath);
-    if (await file.exists() && await file.length() > 0) {
-      return outPath;
-    }
     final bytes = await bundle.load(assetPath);
-    final buffer = bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
-    final sink = file.openWrite();
-    sink.add(buffer);
-    await sink.flush();
-    await sink.close();
+    final expectedLength = bytes.lengthInBytes;
+    final file = File(outPath);
+    if (await file.exists()) {
+      final length = await file.length();
+      if (length == expectedLength) {
+        return outPath;
+      }
+      await file.delete();
+    }
+    final buffer = bytes.buffer.asUint8List(bytes.offsetInBytes, expectedLength);
+    final tmpPath = '$outPath.tmp';
+    final tmpFile = File(tmpPath);
+    if (await tmpFile.exists()) {
+      await tmpFile.delete();
+    }
+    final sink = tmpFile.openWrite();
+    try {
+      sink.add(buffer);
+      await sink.flush();
+      await sink.close();
+      await tmpFile.rename(outPath);
+    } on Object {
+      await sink.close();
+      if (await tmpFile.exists()) {
+        await tmpFile.delete();
+      }
+      rethrow;
+    }
     return outPath;
   }
 }

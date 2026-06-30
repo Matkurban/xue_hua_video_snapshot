@@ -17,10 +17,7 @@ void main() {
 
   group('normalizeFileUri', () {
     test('normalizes plain paths', () {
-      expect(
-        normalizeFileUri('/tmp/a.mp4'),
-        normalizeFileUri('file:///tmp/a.mp4'),
-      );
+      expect(normalizeFileUri('/tmp/a.mp4'), normalizeFileUri('file:///tmp/a.mp4'));
     });
   });
 }

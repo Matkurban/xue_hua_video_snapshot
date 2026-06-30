@@ -302,7 +302,7 @@ interface VideoDecoderHostApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val sessionIdArg = args[0] as Long
+            val sessionIdArg = pigeonLong(args[0])
             api.probeDuration(sessionIdArg) { result: Result<Long> ->
               val error = result.exceptionOrNull()
               if (error != null) {
@@ -322,8 +322,8 @@ interface VideoDecoderHostApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val sessionIdArg = args[0] as Long
-            val positionMsArg = args[1] as Long
+            val sessionIdArg = pigeonLong(args[0])
+            val positionMsArg = pigeonLong(args[1])
             val outputPathArg = args[2] as String?
             api.captureFrame(sessionIdArg, positionMsArg, outputPathArg) { result: Result<CaptureFrameResult> ->
               val error = result.exceptionOrNull()
@@ -344,7 +344,7 @@ interface VideoDecoderHostApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val sessionIdArg = args[0] as Long
+            val sessionIdArg = pigeonLong(args[0])
             api.closeSession(sessionIdArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {

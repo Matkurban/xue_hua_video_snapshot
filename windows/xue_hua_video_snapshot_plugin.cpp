@@ -68,7 +68,9 @@ void XueHuaVideoSnapshotPlugin::RegisterWithRegistrar(
   std::setlocale(LC_NUMERIC, "C");
   InstallWindowsMainThreadPoster(registrar);
 
-  g_decoder_api = std::make_unique<MpvVideoDecoderHostApi>();
+  if (!g_decoder_api) {
+    g_decoder_api = std::make_unique<MpvVideoDecoderHostApi>();
+  }
   VideoDecoderHostApi::SetUp(registrar->messenger(), g_decoder_api.get());
   registrar->AddPlugin(std::make_unique<XueHuaVideoSnapshotPlugin>());
 }

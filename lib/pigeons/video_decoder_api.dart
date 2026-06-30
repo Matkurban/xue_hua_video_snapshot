@@ -5,15 +5,12 @@ import 'package:pigeon/pigeon.dart';
     dartOut: 'lib/src/pigeon/video_decoder_api.g.dart',
     dartOptions: DartOptions(),
     dartPackageName: 'xue_hua_video_snapshot',
-    kotlinOut:
-        'android/src/main/kotlin/com/kurban/xue_hua_video_snapshot/VideoDecoderApi.kt',
-    kotlinOptions: KotlinOptions(
-      package: 'com.kurban.xue_hua_video_snapshot',
-    ),
-    swiftOut: 'shared/apple/VideoDecoderApi.swift',
+    kotlinOut: 'android/src/main/kotlin/com/kurban/xue_hua_video_snapshot/VideoDecoderApi.kt',
+    kotlinOptions: KotlinOptions(package: 'com.kurban.xue_hua_video_snapshot'),
+    swiftOut: 'lib/shared/apple/VideoDecoderApi.swift',
     swiftOptions: SwiftOptions(),
-    cppHeaderOut: 'shared/cpp/video_decoder_api.h',
-    cppSourceOut: 'shared/cpp/video_decoder_api.cpp',
+    cppHeaderOut: 'lib/shared/cpp/video_decoder_api.h',
+    cppSourceOut: 'lib/shared/cpp/video_decoder_api.cpp',
     cppOptions: CppOptions(namespace: 'xue_hua_video_snapshot'),
   ),
 )
@@ -37,11 +34,7 @@ abstract class VideoDecoderHostApi {
   int probeDuration(int sessionId);
 
   @async
-  CaptureFrameResult captureFrame(
-    int sessionId,
-    int positionMs,
-    String? outputPath,
-  );
+  CaptureFrameResult captureFrame(int sessionId, int positionMs, String? outputPath);
 
   @async
   void closeSession(int sessionId);

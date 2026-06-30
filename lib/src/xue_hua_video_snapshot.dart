@@ -1,6 +1,7 @@
 import 'package:path_provider/path_provider.dart';
 
 import 'cover_extraction.dart';
+import 'video_decoder_port.dart';
 import 'video_source.dart';
 import 'video_cover_frame.dart';
 
@@ -8,7 +9,7 @@ import 'video_cover_frame.dart';
 /// Plugin main entry point for extracting cover candidate frames from video.
 class XueHuaVideoSnapshot {
   XueHuaVideoSnapshot._({CoverExtraction? extraction})
-      : _extraction = extraction ?? CoverExtraction();
+    : _extraction = extraction ?? CoverExtraction();
 
   static final XueHuaVideoSnapshot _instance = XueHuaVideoSnapshot._();
 
@@ -27,7 +28,9 @@ class XueHuaVideoSnapshot {
     double minBrightness = 0.08,
     String? outputDir,
   }) async {
-    assert(count > 0, 'count must be > 0');
+    if (count <= 0) {
+      throw const SnapshotException(SnapshotException.invalidArgument, 'count must be > 0');
+    }
     final resolved = await source.resolveToNativeUrl();
     final dir = outputDir ?? await _defaultCoverDir();
     return _extraction.extract(

@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -46,8 +46,7 @@ bool _deepEquals(Object? a, Object? b) {
   }
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -96,12 +95,8 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 class CaptureFrameResult {
-  CaptureFrameResult({
-    required this.rgba64,
-    this.pngPath,
-  });
+  CaptureFrameResult({required this.rgba64, this.pngPath});
 
   /// 64×64 RGBA pixels (16384 bytes).
   Uint8List rgba64;
@@ -110,21 +105,16 @@ class CaptureFrameResult {
   String? pngPath;
 
   List<Object?> _toList() {
-    return <Object?>[
-      rgba64,
-      pngPath,
-    ];
+    return <Object?>[rgba64, pngPath];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static CaptureFrameResult decode(Object result) {
     result as List<Object?>;
-    return CaptureFrameResult(
-      rgba64: result[0]! as Uint8List,
-      pngPath: result[1] as String?,
-    );
+    return CaptureFrameResult(rgba64: result[0]! as Uint8List, pngPath: result[1] as String?);
   }
 
   @override
@@ -149,7 +139,6 @@ class CaptureFrameResult {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -157,7 +146,7 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is CaptureFrameResult) {
+    } else if (value is CaptureFrameResult) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
@@ -182,8 +171,10 @@ class VideoDecoderHostApi {
   /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   VideoDecoderHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    : pigeonVar_binaryMessenger = binaryMessenger,
+      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
+          ? '.$messageChannelSuffix'
+          : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -191,7 +182,8 @@ class VideoDecoderHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<int> openSession(String url) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.openSession$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.openSession$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -201,16 +193,16 @@ class VideoDecoderHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as int;
   }
 
   Future<int> probeDuration(int sessionId) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.probeDuration$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.probeDuration$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -220,35 +212,39 @@ class VideoDecoderHostApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as int;
   }
 
   Future<CaptureFrameResult> captureFrame(int sessionId, int positionMs, String? outputPath) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.captureFrame$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.captureFrame$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[sessionId, positionMs, outputPath]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[
+      sessionId,
+      positionMs,
+      outputPath,
+    ]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as CaptureFrameResult;
   }
 
   Future<void> closeSession(int sessionId) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.closeSession$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.xue_hua_video_snapshot.VideoDecoderHostApi.closeSession$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -257,11 +253,6 @@ class VideoDecoderHostApi {
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[sessionId]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
   }
 }

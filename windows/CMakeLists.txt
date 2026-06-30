@@ -16,7 +16,7 @@ cmake_policy(VERSION 3.14...3.31)
 # not be changed
 set(PLUGIN_NAME "xue_hua_video_snapshot_plugin")
 
-set(SHARED_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../shared/cpp")
+set(SHARED_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lib/shared/cpp")
 
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
@@ -25,6 +25,7 @@ list(APPEND PLUGIN_SOURCES
   "${SHARED_CPP_DIR}/video_decoder_api.cpp"
   "${SHARED_CPP_DIR}/mpv_async_runtime.cc"
   "${SHARED_CPP_DIR}/mpv_session_decoder.cc"
+  "${SHARED_CPP_DIR}/mpv_decoder_session_registry.cc"
   "${SHARED_CPP_DIR}/mpv_video_decoder_host_api.cc"
 )
 

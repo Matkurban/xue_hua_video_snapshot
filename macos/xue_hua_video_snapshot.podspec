@@ -3,18 +3,18 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'xue_hua_video_snapshot'
-  s.version          = '1.0.0'
+  s.version          = '2.0.3'
   s.summary          = 'Extract cover candidate frames from video.'
   s.description      = <<-DESC
 Extract non-black cover candidate frames from video files on macOS.
                        DESC
-  s.homepage         = 'https://jsontodart.cn'
+  s.homepage         = 'https://github.com/Matkurban/xue_hua_video_snapshot'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'kurban' => 'email@example.com' }
+  s.author           = { 'Matkurban' => 'matkurban@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = [
     'xue_hua_video_snapshot/Sources/xue_hua_video_snapshot/XueHuaVideoSnapshotPlugin.swift',
-    '../shared/apple/**/*',
+    '../lib/shared/apple/**/*',
   ]
   s.dependency 'FlutterMacOS'
   s.platform = :osx, '10.15'

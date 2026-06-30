@@ -1,13 +1,13 @@
 # Changelog
 
-## 2.0.3
+## 2.1.0
 
 ### Changed
 
-- Native duplicates consolidated under [`shared/`](shared/):
-  - `shared/apple/` — Pigeon `VideoDecoderApi.swift` + `AppleVideoDecoderHostApi.swift` (iOS & macOS)
-  - `shared/cpp/` — Pigeon bindings + mpv decoder stack (Linux & Windows)
-- Pigeon outputs now generate directly into `shared/`; no manual copy between platforms.
+- Native shared code under `lib/shared/`:
+  - `lib/shared/apple/` — Pigeon `VideoDecoderApi.swift` + `AppleVideoDecoderHostApi.swift` (iOS & macOS)
+  - `lib/shared/cpp/` — Pigeon bindings + mpv decoder stack (Linux & Windows)
+- Pigeon contract input in `lib/pigeons/`; outputs generate into `lib/src/pigeon/` and `lib/shared/`.
 
 ## 2.0.2
 
@@ -39,7 +39,7 @@
 ### Added
 
 - Dart `CoverExtraction` module — unified sampling policy, Rec.601 brightness, sort/trim.
-- Pigeon contract in [`pigeons/video_decoder_api.dart`](pigeons/video_decoder_api.dart).
+- Pigeon contract in [`lib/pigeons/video_decoder_api.dart`](lib/pigeons/video_decoder_api.dart).
 - Dart unit tests in [`test/cover_extraction_test.dart`](test/cover_extraction_test.dart).
 - ADR: [`docs/adr/0001-cover-extraction-policy-in-dart.md`](docs/adr/0001-cover-extraction-policy-in-dart.md).
 

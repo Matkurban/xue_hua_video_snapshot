@@ -8,7 +8,9 @@ class XueHuaVideoSnapshotPlugin : FlutterPlugin {
     private var decoderApi: AndroidVideoDecoderHostApi? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        decoderApi = AndroidVideoDecoderHostApi(binding.applicationContext)
+        if (decoderApi == null) {
+            decoderApi = AndroidVideoDecoderHostApi(binding.applicationContext)
+        }
         VideoDecoderHostApi.setUp(binding.binaryMessenger, decoderApi)
     }
 

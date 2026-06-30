@@ -1,8 +1,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  plugins:
-    - signals_lint
+  exclude:
+    - lib/pigeons/**
 
-formatter: 
+formatter:
   page_width: 100

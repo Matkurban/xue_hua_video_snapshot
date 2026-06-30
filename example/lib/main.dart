@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:xue_hua_video_snapshot/xue_hua_video_snapshot.dart';
 
-/// 示例应用默认测试视频（Big Buck Bunny 片段）。
+/// 示例应用默认测试视频（Flutter 官方 butterfly 片段）。
 const _defaultSampleUrl =
     'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
+
+/// 本地 asset 演示路径（见 [example/pubspec.yaml] assets 配置）。
+const _defaultAssetPath = 'assets/videos/sample.mp4';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,7 +106,7 @@ class _CoverDemoPageState extends State<CoverDemoPage> {
             decoration: const InputDecoration(
               labelText: '视频 URL / 本地路径 / assets/...',
               border: OutlineInputBorder(),
-              helperText: '支持网络地址、本地 file 路径或 Flutter asset',
+              helperText: '网络地址、本地路径，或 asset：$_defaultAssetPath',
             ),
             maxLines: 2,
           ),
@@ -121,7 +124,7 @@ class _CoverDemoPageState extends State<CoverDemoPage> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(
+            SelectableText(
               _error!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -15,11 +14,13 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('xhvs_asset_test_');
-    bundleA = _MemoryBundle({'assets/a.mp4': Uint8List.fromList([1, 2, 3])});
-    bundleB = _MemoryBundle({'assets/a.mp4': Uint8List.fromList([9, 9, 9])});
-    AssetExtractor.debugReplaceInstance(
-      AssetExtractor(tempDirectory: () async => tempDir),
-    );
+    bundleA = _MemoryBundle({
+      'assets/a.mp4': Uint8List.fromList([1, 2, 3]),
+    });
+    bundleB = _MemoryBundle({
+      'assets/a.mp4': Uint8List.fromList([9, 9, 9]),
+    });
+    AssetExtractor.debugReplaceInstance(AssetExtractor(tempDirectory: () async => tempDir));
   });
 
   tearDown(() async {
@@ -47,10 +48,7 @@ void main() {
 
   test('concurrent extract shares one future per bundle+path', () async {
     final extractor = AssetExtractor.instance;
-    final futures = List.generate(
-      4,
-      (_) => extractor.extract('assets/a.mp4', bundle: bundleA),
-    );
+    final futures = List.generate(4, (_) => extractor.extract('assets/a.mp4', bundle: bundleA));
     final paths = await Future.wait(futures);
     expect(paths.toSet().length, 1);
     expect(extractor.inflightForTesting, isEmpty);
@@ -61,6 +59,18 @@ void main() {
     final first = await extractor.extract('assets/a.mp4', bundle: bundleA);
     final second = await extractor.extract('assets/a.mp4', bundle: bundleA);
     expect(second, first);
+  });
+
+  test('recovers from partial cache file with wrong size', () async {
+    final extractor = AssetExtractor.instance;
+    final root = Directory('${tempDir.path}/xue_hua_video_snapshot/assets');
+    await root.create(recursive: true);
+    final cacheName = AssetExtractor.cacheFileName('assets/a.mp4', bundleA);
+    final corrupt = File('${root.path}/$cacheName');
+    await corrupt.writeAsBytes([1, 2]); // partial write, wrong size
+
+    final path = await extractor.extract('assets/a.mp4', bundle: bundleA);
+    expect(await File(path).readAsBytes(), [1, 2, 3]);
   });
 }
 
@@ -79,10 +89,7 @@ class _MemoryBundle extends AssetBundle {
   }
 
   @override
-  Future<T> loadStructuredData<T>(
-    String key,
-    Future<T> Function(String value) parser,
-  ) {
+  Future<T> loadStructuredData<T>(String key, Future<T> Function(String value) parser) {
     throw UnimplementedError();
   }
 }

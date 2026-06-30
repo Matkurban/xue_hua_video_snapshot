@@ -300,7 +300,7 @@ class VideoDecoderHostApiSetup {
     if let api = api {
       probeDurationChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let sessionIdArg = args[0] as! Int64
+        let sessionIdArg = PigeonCodecHelpers.int64(from: args[0])
         api.probeDuration(sessionId: sessionIdArg) { result in
           switch result {
           case .success(let res):
@@ -317,8 +317,8 @@ class VideoDecoderHostApiSetup {
     if let api = api {
       captureFrameChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let sessionIdArg = args[0] as! Int64
-        let positionMsArg = args[1] as! Int64
+        let sessionIdArg = PigeonCodecHelpers.int64(from: args[0])
+        let positionMsArg = PigeonCodecHelpers.int64(from: args[1])
         let outputPathArg: String? = nilOrValue(args[2])
         api.captureFrame(sessionId: sessionIdArg, positionMs: positionMsArg, outputPath: outputPathArg) { result in
           switch result {
@@ -336,7 +336,7 @@ class VideoDecoderHostApiSetup {
     if let api = api {
       closeSessionChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let sessionIdArg = args[0] as! Int64
+        let sessionIdArg = PigeonCodecHelpers.int64(from: args[0])
         api.closeSession(sessionId: sessionIdArg) { result in
           switch result {
           case .success:

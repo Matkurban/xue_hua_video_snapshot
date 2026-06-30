@@ -1,15 +1,22 @@
 import AVFoundation
 import CoreGraphics
 import Foundation
+#if os(iOS)
+import Flutter
+#elseif os(macOS)
+import FlutterMacOS
+#endif
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
 #endif
 
-/// Apple AVFoundation session decoder for [VideoDecoderHostApi].
-final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
-    private struct Session {
+/// Plugin-scoped session registry — survives host API re-instantiation on plugin re-register.
+final class DecoderSessionRegistry {
+    static let shared = DecoderSessionRegistry()
+
+    struct Session {
         let asset: AVURLAsset
         let generator: AVAssetImageGenerator
         let lock = NSLock()
@@ -18,6 +25,47 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
     private var sessions: [Int64: Session] = [:]
     private var nextSessionId: Int64 = 1
     private let sessionsLock = NSLock()
+
+    private init() {}
+
+    func open(url: URL) -> Int64 {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = CMTime(seconds: 0.5, preferredTimescale: 600)
+        generator.requestedTimeToleranceAfter = CMTime(seconds: 0.5, preferredTimescale: 600)
+        generator.maximumSize = CGSize(width: 1280, height: 720)
+
+        sessionsLock.lock()
+        let id = nextSessionId
+        nextSessionId += 1
+        sessions[id] = Session(asset: asset, generator: generator)
+        sessionsLock.unlock()
+        return id
+    }
+
+    func session(for id: Int64) -> Session? {
+        sessionsLock.lock()
+        defer { sessionsLock.unlock() }
+        return sessions[id]
+    }
+
+    func close(id: Int64) {
+        sessionsLock.lock()
+        sessions.removeValue(forKey: id)
+        sessionsLock.unlock()
+    }
+
+    var activeCount: Int {
+        sessionsLock.lock()
+        defer { sessionsLock.unlock() }
+        return sessions.count
+    }
+}
+
+/// Apple AVFoundation session decoder for [VideoDecoderHostApi].
+final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
+    private let registry = DecoderSessionRegistry.shared
     private let workQueue = DispatchQueue(label: "xue_hua_video_snapshot.decoder", qos: .userInitiated)
 
     func openSession(url: String, completion: @escaping (Result<Int64, Error>) -> Void) {
@@ -26,18 +74,7 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
                 guard let mediaURL = URL(string: url) else {
                     return .failure(PigeonError(code: "INVALID_ARGUMENT", message: "Invalid url", details: nil))
                 }
-                let asset = AVURLAsset(url: mediaURL)
-                let generator = AVAssetImageGenerator(asset: asset)
-                generator.appliesPreferredTrackTransform = true
-                generator.requestedTimeToleranceBefore = CMTime(seconds: 0.5, preferredTimescale: 600)
-                generator.requestedTimeToleranceAfter = CMTime(seconds: 0.5, preferredTimescale: 600)
-                generator.maximumSize = CGSize(width: 1280, height: 720)
-
-                self.sessionsLock.lock()
-                let id = self.nextSessionId
-                self.nextSessionId += 1
-                self.sessions[id] = Session(asset: asset, generator: generator)
-                self.sessionsLock.unlock()
+                let id = self.registry.open(url: mediaURL)
                 return .success(id)
             }()
             DispatchQueue.main.async { completion(result) }
@@ -47,11 +84,15 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
     func probeDuration(sessionId: Int64, completion: @escaping (Result<Int64, Error>) -> Void) {
         workQueue.async {
             let result: Result<Int64, Error> = {
-                guard let session = self.session(for: sessionId) else {
+                guard let session = self.registry.session(for: sessionId) else {
                     return .failure(PigeonError(code: "SESSION_ERROR", message: "Unknown session", details: nil))
                 }
                 session.lock.lock()
                 defer { session.lock.unlock() }
+                let loadError = Self.loadAssetMetadata(session.asset)
+                if let loadError {
+                    return .failure(loadError)
+                }
                 let seconds = CMTimeGetSeconds(session.asset.duration)
                 guard seconds.isFinite, seconds > 0 else {
                     return .failure(PigeonError(code: "PROBE_FAILED", message: "Duration unavailable", details: nil))
@@ -70,7 +111,7 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
     ) {
         workQueue.async {
             let result: Result<CaptureFrameResult, Error> = {
-                guard let session = self.session(for: sessionId) else {
+                guard let session = self.registry.session(for: sessionId) else {
                     return .failure(PigeonError(code: "SESSION_ERROR", message: "Unknown session", details: nil))
                 }
                 session.lock.lock()
@@ -85,7 +126,14 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
                     return .failure(PigeonError(code: "DECODE_FAILED", message: error.localizedDescription, details: nil))
                 }
 
-                let rgba = Self.rgba64(from: cgImage)
+                let rgba: Data
+                do {
+                    rgba = try Self.rgba64(from: cgImage)
+                } catch let error as PigeonError {
+                    return .failure(error)
+                } catch {
+                    return .failure(PigeonError(code: "DECODE_FAILED", message: error.localizedDescription, details: nil))
+                }
                 var pngPath: String? = nil
                 if let outputPath {
                     guard Self.writePNG(cgImage: cgImage, to: outputPath) else {
@@ -93,7 +141,12 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
                     }
                     pngPath = outputPath
                 }
-                return .success(CaptureFrameResult(rgba64: rgba, pngPath: pngPath))
+                return .success(
+                    CaptureFrameResult(
+                        rgba64: FlutterStandardTypedData(bytes: rgba),
+                        pngPath: pngPath
+                    )
+                )
             }()
             DispatchQueue.main.async { completion(result) }
         }
@@ -101,26 +154,42 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
 
     func closeSession(sessionId: Int64, completion: @escaping (Result<Void, Error>) -> Void) {
         workQueue.async {
-            self.sessionsLock.lock()
-            self.sessions.removeValue(forKey: sessionId)
-            self.sessionsLock.unlock()
+            self.registry.close(id: sessionId)
             DispatchQueue.main.async { completion(.success(())) }
         }
     }
 
-    private func session(for id: Int64) -> Session? {
-        sessionsLock.lock()
-        defer { sessionsLock.unlock() }
-        return sessions[id]
+    private static func loadAssetMetadata(_ asset: AVURLAsset) -> PigeonError? {
+        let keys = ["duration", "tracks"]
+        let group = DispatchGroup()
+        group.enter()
+        asset.loadValuesAsynchronously(forKeys: keys) {
+            group.leave()
+        }
+        group.wait()
+
+        var nsError: NSError?
+        let status = asset.statusOfValue(forKey: "duration", error: &nsError)
+        switch status {
+        case .loaded:
+            return nil
+        case .failed:
+            let message = nsError?.localizedDescription ?? "Duration load failed"
+            return PigeonError(code: "PROBE_FAILED", message: message, details: nil)
+        case .cancelled:
+            return PigeonError(code: "PROBE_FAILED", message: "Duration load cancelled", details: nil)
+        default:
+            return PigeonError(code: "PROBE_FAILED", message: "Duration unavailable", details: nil)
+        }
     }
 
-    private static func rgba64(from cgImage: CGImage) -> Data {
+    private static func rgba64(from cgImage: CGImage) throws -> Data {
         let w = 64
         let h = 64
         let bytesPerRow = w * 4
         var data = [UInt8](repeating: 0, count: w * h * 4)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
+        let bitmapInfo = CGImageAlphaInfo.noneSkipLast.rawValue
         guard let ctx = CGContext(
             data: &data,
             width: w,
@@ -130,9 +199,13 @@ final class AppleVideoDecoderHostApi: VideoDecoderHostApi {
             space: colorSpace,
             bitmapInfo: bitmapInfo
         ) else {
-            return Data(count: w * h * 4)
+            throw PigeonError(code: "DECODE_FAILED", message: "Failed to create RGBA context", details: nil)
         }
         ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: w, height: h))
+        for i in 0..<(w * h) {
+            let o = i * 4 + 3
+            data[o] = 255
+        }
         return Data(data)
     }
 

@@ -11,10 +11,8 @@ import 'video_decoder_port.dart';
 
 /// Deep module: sampling policy, brightness filter, sort, and trim.
 class CoverExtraction {
-  CoverExtraction({
-    VideoDecoderPort? decoder,
-    this.maxConcurrency = 4,
-  }) : _decoder = decoder ?? PigeonVideoDecoderPort();
+  CoverExtraction({VideoDecoderPort? decoder, this.maxConcurrency = 4})
+    : _decoder = decoder ?? PigeonVideoDecoderPort();
 
   final VideoDecoderPort _decoder;
   final int maxConcurrency;
@@ -25,7 +23,9 @@ class CoverExtraction {
     required double minBrightness,
     required String outputDir,
   }) async {
-    assert(count > 0, 'count must be > 0');
+    if (count <= 0) {
+      throw const SnapshotException(SnapshotException.invalidArgument, 'count must be > 0');
+    }
     final candidateBudget = defaultCandidateBudget(count);
     await Directory(outputDir).create(recursive: true);
 
@@ -62,7 +62,7 @@ class CoverExtraction {
       samples.sort((a, b) => b.brightness.compareTo(a.brightness));
       final winners = samples.take(count).toList();
 
-      return _writeWinnerPngs(
+      return await _writeWinnerPngs(
         sessionId: sessionId,
         url: url,
         outputDir: outputDir,
@@ -81,7 +81,7 @@ class CoverExtraction {
     try {
       return await _decoder.probeDuration(sessionId);
     } on PlatformException catch (e) {
-      throw SnapshotException.fromPlatform(e, 'probe');
+      throw SnapshotException.fromPlatform(e, 'probe', sessionId: sessionId);
     }
   }
 
@@ -92,6 +92,8 @@ class CoverExtraction {
   }) async {
     final results = <_Sample>[];
     var nextIndex = 0;
+    Object? firstError;
+
     int? takePosition() {
       if (nextIndex >= positions.length) return null;
       return positions[nextIndex++];
@@ -101,26 +103,33 @@ class CoverExtraction {
       while (true) {
         final positionMs = takePosition();
         if (positionMs == null) break;
-        final rgba = await _captureRgba(sessionId, positionMs);
-        if (rgba == null) continue;
-        final brightness = rec601AverageLuma(rgba);
-        if (brightness < minBrightness) continue;
-        results.add(_Sample(positionMs: positionMs, brightness: brightness));
+        try {
+          final rgba = await _captureRgba(sessionId, positionMs);
+          final brightness = rec601AverageLuma(rgba);
+          if (brightness < minBrightness) continue;
+          results.add(_Sample(positionMs: positionMs, brightness: brightness));
+        } on Object catch (e) {
+          firstError ??= e;
+        }
       }
     }
 
     await Future.wait(
       List.generate(maxConcurrency.clamp(1, 32), (_) => worker()),
+      eagerError: false,
     );
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError!, StackTrace.current);
+    }
     return results;
   }
 
-  Future<Uint8List?> _captureRgba(int sessionId, int positionMs) async {
+  Future<Uint8List> _captureRgba(int sessionId, int positionMs) async {
     try {
       final result = await _decoder.captureFrame(sessionId, positionMs, null);
       return result.rgba64;
     } on PlatformException catch (e) {
-      throw SnapshotException.fromPlatform(e, 'capture');
+      throw SnapshotException.fromPlatform(e, 'capture', sessionId: sessionId);
     }
   }
 
@@ -135,11 +144,7 @@ class CoverExtraction {
       final fileName = 'cover-${url.hashCode.abs()}-${sample.positionMs}.png';
       final outputPath = '$outputDir/$fileName';
       try {
-        final result = await _decoder.captureFrame(
-          sessionId,
-          sample.positionMs,
-          outputPath,
-        );
+        final result = await _decoder.captureFrame(sessionId, sample.positionMs, outputPath);
         final path = result.pngPath ?? outputPath;
         frames.add(
           VideoCoverFrame(
@@ -149,7 +154,7 @@ class CoverExtraction {
           ),
         );
       } on PlatformException catch (e) {
-        throw SnapshotException.fromPlatform(e, 'write');
+        throw SnapshotException.fromPlatform(e, 'write', sessionId: sessionId);
       }
     }
     return frames;

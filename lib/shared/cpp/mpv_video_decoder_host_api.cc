@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "mpv_async_runtime.h"
+#include "mpv_decoder_session_registry.h"
 
 namespace xue_hua_video_snapshot {
 
@@ -21,25 +22,18 @@ void DispatchOnMpvWorker(Work work, std::function<void(Reply)> result) {
 
 }  // namespace
 
-MpvDecoderSession* MpvVideoDecoderHostApi::SessionOrNull(int64_t session_id) {
-  auto it = sessions_.find(session_id);
-  if (it == sessions_.end()) return nullptr;
-  return it->second.get();
-}
-
 ErrorOr<int64_t> MpvVideoDecoderHostApi::OpenSessionOnWorker(const std::string& url) {
   auto session = std::make_unique<MpvDecoderSession>(url);
   std::string error;
   if (session->DurationMs(&error) <= 0) {
     return FlutterError("PROBE_FAILED", error.empty() ? "open session failed" : error);
   }
-  const int64_t id = next_session_id_++;
-  sessions_[id] = std::move(session);
+  const int64_t id = MpvDecoderSessionRegistry::Instance().Open(std::move(session));
   return id;
 }
 
 ErrorOr<int64_t> MpvVideoDecoderHostApi::ProbeDurationOnWorker(int64_t session_id) {
-  auto* session = SessionOrNull(session_id);
+  auto* session = MpvDecoderSessionRegistry::Instance().SessionOrNull(session_id);
   if (!session) {
     return FlutterError("SESSION_ERROR", "Unknown session");
   }
@@ -55,7 +49,7 @@ ErrorOr<CaptureFrameResult> MpvVideoDecoderHostApi::CaptureFrameOnWorker(
     int64_t session_id,
     int64_t position_ms,
     const std::string* output_path) {
-  auto* session = SessionOrNull(session_id);
+  auto* session = MpvDecoderSessionRegistry::Instance().SessionOrNull(session_id);
   if (!session) {
     return FlutterError("SESSION_ERROR", "Unknown session");
   }
@@ -75,7 +69,7 @@ ErrorOr<CaptureFrameResult> MpvVideoDecoderHostApi::CaptureFrameOnWorker(
 }
 
 std::optional<FlutterError> MpvVideoDecoderHostApi::CloseSessionOnWorker(int64_t session_id) {
-  sessions_.erase(session_id);
+  MpvDecoderSessionRegistry::Instance().Close(session_id);
   return std::nullopt;
 }
 

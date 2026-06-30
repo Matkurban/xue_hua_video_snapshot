@@ -54,7 +54,9 @@ void xue_hua_video_snapshot_plugin_register_with_registrar(FlPluginRegistrar* re
   std::setlocale(LC_NUMERIC, "C");
   InstallLinuxMainThreadPoster();
 
-  g_decoder_api = std::make_unique<xue_hua_video_snapshot::MpvVideoDecoderHostApi>();
+  if (!g_decoder_api) {
+    g_decoder_api = std::make_unique<xue_hua_video_snapshot::MpvVideoDecoderHostApi>();
+  }
   xue_hua_video_snapshot::VideoDecoderHostApi::SetUp(
       fl_plugin_registrar_get_messenger(registrar),
       g_decoder_api.get());
