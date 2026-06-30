@@ -12,7 +12,10 @@ Extract non-black cover candidate frames from video files on iOS.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'kurban' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'xue_hua_video_snapshot/Sources/xue_hua_video_snapshot/**/*'
+  s.source_files = [
+    'xue_hua_video_snapshot/Sources/xue_hua_video_snapshot/XueHuaVideoSnapshotPlugin.swift',
+    '../shared/apple/**/*',
+  ]
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 

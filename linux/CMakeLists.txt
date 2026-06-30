@@ -11,11 +11,15 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # not be changed.
 set(PLUGIN_NAME "xue_hua_video_snapshot_plugin")
 
+set(SHARED_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../shared/cpp")
+
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
   "xue_hua_video_snapshot_plugin.cc"
-  "mpv_cover_extractor.cc"
-  "mpv_cover_extractor.h"
+  "${SHARED_CPP_DIR}/video_decoder_api.cpp"
+  "${SHARED_CPP_DIR}/mpv_async_runtime.cc"
+  "${SHARED_CPP_DIR}/mpv_session_decoder.cc"
+  "${SHARED_CPP_DIR}/mpv_video_decoder_host_api.cc"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
@@ -45,6 +49,7 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(${PLUGIN_NAME} PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${SHARED_CPP_DIR}"
   ${MPV_INCLUDE_DIRS})
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
@@ -98,6 +103,7 @@ add_executable(${TEST_RUNNER}
 apply_standard_settings(${TEST_RUNNER})
 target_include_directories(${TEST_RUNNER} PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${SHARED_CPP_DIR}"
   ${MPV_INCLUDE_DIRS})
 target_link_libraries(${TEST_RUNNER} PRIVATE flutter)
 target_link_libraries(${TEST_RUNNER} PRIVATE PkgConfig::GTK)

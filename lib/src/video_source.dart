@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'asset_extractor.dart';
+import 'file_uri.dart';
 
 /// 描述一个视频的来源。
 ///
@@ -80,15 +81,10 @@ class FileVideoSource extends VideoSource {
   const FileVideoSource(this.path);
 
   @override
-  String get identity {
-    return path.startsWith('file://') ? path : 'file://$path';
-  }
+  String get identity => normalizeFileUri(path);
 
   @override
-  Future<String> resolveToNativeUrl() async {
-    if (path.startsWith('file://')) return path;
-    return Uri.file(path).toString();
-  }
+  Future<String> resolveToNativeUrl() async => normalizeFileUri(path);
 
   @override
   bool operator ==(Object other) =>
@@ -116,8 +112,8 @@ class AssetVideoSource extends VideoSource {
 
   @override
   Future<String> resolveToNativeUrl() async {
-    final path = await AssetExtractor.extract(assetPath, bundle: bundle);
-    return Uri.file(path).toString();
+    final path = await AssetExtractor.instance.extract(assetPath, bundle: bundle);
+    return normalizeFileUri(path);
   }
 
   @override

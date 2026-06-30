@@ -2,41 +2,78 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// 负责把 Flutter assets 中的媒体懒抽取到本地文件，供原生解码器使用。
-/// Extracts Flutter assets to a local file so native decoders can read them.
-class AssetExtractor {
-  AssetExtractor._();
+typedef TempDirectoryResolver = Future<Directory> Function();
+typedef DefaultBundleResolver = AssetBundle Function();
 
-  /// 同一 asset 的抽取过程只进行一次，多次并发调用共享同一个 future。
-  /// Concurrent extractions of the same asset share a single future.
-  static final Map<String, Future<String>> _inflight = <String, Future<String>>{};
+/// 负责把 Flutter assets 中的媒体懒抽取到本地文件，供原生解码器使用。
+///
+/// Injectable [tempDirectory] / [defaultBundle] make this module testable.
+/// Use [instance] from production code; replace via [debugReplaceInstance] in tests.
+class AssetExtractor {
+  AssetExtractor({
+    TempDirectoryResolver? tempDirectory,
+    DefaultBundleResolver? defaultBundle,
+  })  : _tempDirectory = tempDirectory ?? getTemporaryDirectory,
+        _defaultBundle = defaultBundle ?? (() => rootBundle);
+
+  static AssetExtractor instance = AssetExtractor();
+
+  @visibleForTesting
+  static void debugReplaceInstance(AssetExtractor replacement) {
+    instance = replacement;
+  }
+
+  @visibleForTesting
+  static void debugResetInstance() {
+    instance = AssetExtractor();
+  }
+
+  final TempDirectoryResolver _tempDirectory;
+  final DefaultBundleResolver _defaultBundle;
+  final Map<String, Future<String>> _inflight = <String, Future<String>>{};
 
   /// 返回抽取后落地文件的绝对路径；若已存在则直接复用。
-  ///
-  /// Returns the absolute path of the extracted file; reuses existing files.
-  static Future<String> extract(String assetPath, {AssetBundle? bundle}) {
-    final key = assetPath;
+  Future<String> extract(String assetPath, {AssetBundle? bundle}) {
+    final resolvedBundle = bundle ?? _defaultBundle();
+    final key = _inflightKey(assetPath, resolvedBundle);
     final inflight = _inflight[key];
     if (inflight != null) return inflight;
-    final future = _doExtract(assetPath, bundle ?? rootBundle);
+    final future = _doExtract(assetPath, resolvedBundle);
     _inflight[key] = future;
     future.whenComplete(() => _inflight.remove(key));
     return future;
   }
 
-  static Future<String> _doExtract(String assetPath, AssetBundle bundle) async {
-    final tempDir = await getTemporaryDirectory();
+  @visibleForTesting
+  Map<String, Future<String>> get inflightForTesting => _inflight;
+
+  static String inflightKey(String assetPath, AssetBundle bundle) {
+    return '$assetPath::${identityHashCode(bundle)}';
+  }
+
+  String _inflightKey(String assetPath, AssetBundle bundle) =>
+      inflightKey(assetPath, bundle);
+
+  static String cacheFileName(String assetPath, AssetBundle bundle) {
+    final digest = sha1.convert(
+      '${identityHashCode(bundle)}:$assetPath'.codeUnits,
+    );
+    final baseName = assetPath.split('/').last;
+    final safeName = baseName.isEmpty ? 'media' : baseName;
+    return '${digest.toString()}-$safeName';
+  }
+
+  Future<String> _doExtract(String assetPath, AssetBundle bundle) async {
+    final tempDir = await _tempDirectory();
     final root = Directory('${tempDir.path}/xue_hua_video_snapshot/assets');
     if (!await root.exists()) {
       await root.create(recursive: true);
     }
-    final hash = sha1.convert(assetPath.codeUnits).toString();
-    final baseName = assetPath.split('/').last;
-    final safeName = baseName.isEmpty ? 'media' : baseName;
-    final outPath = '${root.path}/$hash-$safeName';
+    final outPath = '${root.path}/${cacheFileName(assetPath, bundle)}';
     final file = File(outPath);
     if (await file.exists() && await file.length() > 0) {
       return outPath;

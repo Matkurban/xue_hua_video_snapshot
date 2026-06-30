@@ -20,6 +20,11 @@ let package = Package(
             dependencies: [
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],
+            path: ".",
+            sources: [
+                "Sources/xue_hua_video_snapshot/XueHuaVideoSnapshotPlugin.swift",
+                "../../shared/apple",
+            ],
             resources: [
                 // If your plugin requires a privacy manifest, for example if it collects user
                 // data, update the PrivacyInfo.xcprivacy file to describe your plugin's

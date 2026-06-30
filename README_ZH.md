@@ -41,6 +41,14 @@ dependencies:
 
 桌面端依赖 **libmpv**：Linux 需系统安装；Windows 插件在 CMake 配置阶段会自动下载固定版本的 libmpv SDK。
 
+### 开发者：重新生成 Pigeon 绑定
+
+```bash
+dart run pigeon --input pigeons/video_decoder_api.dart
+```
+
+生成目标：`shared/apple/VideoDecoderApi.swift`、`shared/cpp/video_decoder_api.{h,cpp}`。iOS/macOS 与 Linux/Windows 均引用 `shared/` 下的同一份源文件。
+
 ## 用法
 
 ```dart
