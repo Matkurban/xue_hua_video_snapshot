@@ -1,33 +1,6 @@
 # Changelog
 
-## 2.1.0
-
-### Changed
-
-- Native shared code under `lib/shared/`:
-  - `lib/shared/apple/` — Pigeon `VideoDecoderApi.swift` + `AppleVideoDecoderHostApi.swift` (iOS & macOS)
-  - `lib/shared/cpp/` — Pigeon bindings + mpv decoder stack (Linux & Windows)
-- Pigeon contract input in `lib/pigeons/`; outputs generate into `lib/src/pigeon/` and `lib/shared/`.
-
-## 2.0.2
-
-### Fixed
-
-- Linux/Windows: mpv decode work runs on a dedicated worker thread; Pigeon replies are
-  posted back to the UI thread (`g_idle_add` on Linux, `PostMessage` on Windows).
-
-## 2.0.1
-
-### Fixed
-
-- `AssetExtractor` inflight/cache keys now include `AssetBundle` identity — custom bundles no longer race or reuse wrong files.
-- `FileVideoSource.identity` and `resolveToNativeUrl()` use the same `normalizeFileUri` helper.
-
-### Changed
-
-- `AssetExtractor` is an injectable instance (`AssetExtractor.instance`) instead of a static-only API.
-
-## 2.0.0
+## 1.1.0
 
 ### Breaking
 
@@ -41,7 +14,21 @@
 - Dart `CoverExtraction` module — unified sampling policy, Rec.601 brightness, sort/trim.
 - Pigeon contract in [`lib/pigeons/video_decoder_api.dart`](lib/pigeons/video_decoder_api.dart).
 - Dart unit tests in [`test/cover_extraction_test.dart`](test/cover_extraction_test.dart).
-- ADR: [`docs/adr/0001-cover-extraction-policy-in-dart.md`](docs/adr/0001-cover-extraction-policy-in-dart.md).
+
+### Changed
+
+- Native shared code under `lib/shared/`:
+  - `lib/shared/apple/` — Pigeon `VideoDecoderApi.swift` + `AppleVideoDecoderHostApi.swift` (iOS & macOS)
+  - `lib/shared/cpp/` — Pigeon bindings + mpv decoder stack (Linux & Windows)
+- Pigeon contract input in `lib/pigeons/`; outputs generate into `lib/src/pigeon/` and `lib/shared/`.
+- `AssetExtractor` is an injectable instance (`AssetExtractor.instance`) instead of a static-only API.
+
+### Fixed
+
+- Linux/Windows: mpv decode work runs on a dedicated worker thread; Pigeon replies are
+  posted back to the UI thread (`g_idle_add` on Linux, `PostMessage` on Windows).
+- `AssetExtractor` inflight/cache keys now include `AssetBundle` identity — custom bundles no longer race or reuse wrong files.
+- `FileVideoSource.identity` and `resolveToNativeUrl()` use the same `normalizeFileUri` helper.
 
 ### Removed
 
