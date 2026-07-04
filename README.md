@@ -14,11 +14,11 @@ A cross-platform Flutter plugin that extracts **non-black cover candidate frames
 
 ## Platform Engines
 
-| Platform | Native Engine |
-|----------|---------------|
-| Android  | `MediaMetadataRetriever` |
-| iOS      | `AVAssetImageGenerator` |
-| macOS    | `AVAssetImageGenerator` |
+| Platform | Native Engine                       |
+|----------|-------------------------------------|
+| Android  | `MediaMetadataRetriever`            |
+| iOS      | `AVAssetImageGenerator`             |
+| macOS    | `AVAssetImageGenerator`             |
 | Linux    | libmpv (short-lived decode session) |
 | Windows  | libmpv (short-lived decode session) |
 
@@ -45,13 +45,13 @@ Desktop platforms require **libmpv** on the system (Linux) or bundle libmpv with
 
 Permissions depend on the [video source](#video-sources) you use. The plugin declares what it can merge; **your app** must add sandbox entitlements (macOS), cleartext/ATS rules (Android/iOS), or runtime media permissions where noted.
 
-| Source | Android | iOS | macOS | Linux | Windows |
-|--------|---------|-----|-------|-------|---------|
-| **HTTPS network URL** | `INTERNET` (plugin) | ATS default | `network.client` entitlement | — | — |
-| **HTTP network URL** | `INTERNET` + cleartext policy | `NSAppTransportSecurity` exception | `network.client` entitlement | — | — |
-| **Local `file://` path** | Readable path or `content://` | App-accessible paths only | `files.user-selected.read-only` (sandbox) | — | — |
-| **Flutter asset** | — | — | — | — | — |
-| **Runtime dependency** | — | — | — | libmpv installed | libmpv via CMake |
+| Source                   | Android                       | iOS                                | macOS                                     | Linux            | Windows          |
+|--------------------------|-------------------------------|------------------------------------|-------------------------------------------|------------------|------------------|
+| **HTTPS network URL**    | `INTERNET` (plugin)           | ATS default                        | `network.client` entitlement              | —                | —                |
+| **HTTP network URL**     | `INTERNET` + cleartext policy | `NSAppTransportSecurity` exception | `network.client` entitlement              | —                | —                |
+| **Local `file://` path** | Readable path or `content://` | App-accessible paths only          | `files.user-selected.read-only` (sandbox) | —                | —                |
+| **Flutter asset**        | —                             | —                                  | —                                         | —                | —                |
+| **Runtime dependency**   | —                             | —                                  | —                                         | libmpv installed | libmpv via CMake |
 
 ### Android
 
@@ -114,12 +114,12 @@ VideoSource.asset('assets/sample.mp4')
 
 ### API
 
-| Symbol | Description |
-|--------|-------------|
-| `XueHuaVideoSnapshot.instance` | Plugin singleton |
-| `extractCoverCandidates(source, {count, minBrightness, outputDir})` | Extract cover candidates |
-| `VideoCoverFrame` | Result: `image` (`XFile` PNG), `position`, `brightness` |
-| `VideoSource` | Sealed type with `network` / `file` / `asset` constructors |
+| Symbol                                                              | Description                                                |
+|---------------------------------------------------------------------|------------------------------------------------------------|
+| `XueHuaVideoSnapshot.instance`                                      | Plugin singleton                                           |
+| `extractCoverCandidates(source, {count, minBrightness, outputDir})` | Extract cover candidates                                   |
+| `VideoCoverFrame`                                                   | Result: `image` (`XFile` PNG), `position`, `brightness`    |
+| `VideoSource`                                                       | Sealed type with `network` / `file` / `asset` constructors |
 
 ## Example
 

@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'xue_hua_video_snapshot'
-  s.version          = '2.0.3'
+  s.version          = '1.0.0'
   s.summary          = 'Extract cover candidate frames from video.'
   s.description      = <<-DESC
 Extract non-black cover candidate frames from video files on macOS.

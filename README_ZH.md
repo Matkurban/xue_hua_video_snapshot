@@ -14,13 +14,13 @@
 
 ## 平台实现
 
-| 平台 | 原生实现 |
-|------|----------|
+| 平台      | 原生实现                     |
+|---------|--------------------------|
 | Android | `MediaMetadataRetriever` |
-| iOS | `AVAssetImageGenerator` |
-| macOS | `AVAssetImageGenerator` |
-| Linux | libmpv（短生命周期解码会话） |
-| Windows | libmpv（短生命周期解码会话） |
+| iOS     | `AVAssetImageGenerator`  |
+| macOS   | `AVAssetImageGenerator`  |
+| Linux   | libmpv（短生命周期解码会话）        |
+| Windows | libmpv（短生命周期解码会话）        |
 
 ## 快速开始
 
@@ -45,13 +45,13 @@ dependencies:
 
 权限取决于你使用的[视频来源](#视频来源)。插件只合并它能声明的部分；**沙盒 entitlements**（macOS）、**明文/ATS 策略**（Android/iOS）、**运行时媒体权限**等由宿主应用自行配置。
 
-| 来源 | Android | iOS | macOS | Linux | Windows |
-|------|---------|-----|-------|-------|---------|
-| **HTTPS 网络 URL** | `INTERNET`（插件） | ATS 默认允许 | `network.client` entitlement | — | — |
-| **HTTP 网络 URL** | `INTERNET` + 明文流量策略 | `NSAppTransportSecurity` 例外 | `network.client` entitlement | — | — |
-| **本地 `file://` 路径** | 可读路径或 `content://` | 仅应用可访问路径 | `files.user-selected.read-only`（沙盒） | — | — |
-| **Flutter asset** | — | — | — | — | — |
-| **运行时依赖** | — | — | — | 系统安装 libmpv | CMake 下载 libmpv |
+| 来源                  | Android             | iOS                         | macOS                               | Linux       | Windows         |
+|---------------------|---------------------|-----------------------------|-------------------------------------|-------------|-----------------|
+| **HTTPS 网络 URL**    | `INTERNET`（插件）      | ATS 默认允许                    | `network.client` entitlement        | —           | —               |
+| **HTTP 网络 URL**     | `INTERNET` + 明文流量策略 | `NSAppTransportSecurity` 例外 | `network.client` entitlement        | —           | —               |
+| **本地 `file://` 路径** | 可读路径或 `content://`  | 仅应用可访问路径                    | `files.user-selected.read-only`（沙盒） | —           | —               |
+| **Flutter asset**   | —                   | —                           | —                                   | —           | —               |
+| **运行时依赖**           | —                   | —                           | —                                   | 系统安装 libmpv | CMake 下载 libmpv |
 
 ### Android
 
@@ -96,12 +96,12 @@ dart run pigeon --input lib/pigeons/video_decoder_api.dart
 
 目录布局：
 
-| 路径 | 用途 |
-|------|------|
-| `lib/pigeons/` | Pigeon 接口定义（输入） |
-| `lib/shared/apple/` | iOS/macOS 共享 Swift（含 Pigeon 生成 + 手写 adapter） |
-| `lib/shared/cpp/` | Linux/Windows 共享 C++（含 Pigeon 生成 + mpv adapter） |
-| `lib/src/pigeon/` | Pigeon 生成的 Dart 绑定 |
+| 路径                  | 用途                                              |
+|---------------------|-------------------------------------------------|
+| `lib/pigeons/`      | Pigeon 接口定义（输入）                                 |
+| `lib/shared/apple/` | iOS/macOS 共享 Swift（含 Pigeon 生成 + 手写 adapter）    |
+| `lib/shared/cpp/`   | Linux/Windows 共享 C++（含 Pigeon 生成 + mpv adapter） |
+| `lib/src/pigeon/`   | Pigeon 生成的 Dart 绑定                              |
 
 生成目标：
 
@@ -111,9 +111,9 @@ dart run pigeon --input lib/pigeons/video_decoder_api.dart
 
 **Apple 双构建路径**（见 [Pigeon 文档](https://pub.dev/packages/pigeon)：生成代码须加入参与编译的工程）：
 
-| 构建方式 | 如何引用 `lib/shared/apple/` |
-|----------|------------------------------|
-| CocoaPods（`.podspec`） | `source_files` 包含 `../lib/shared/apple/**/*` |
+| 构建方式                                   | 如何引用 `lib/shared/apple/`                                               |
+|----------------------------------------|------------------------------------------------------------------------|
+| CocoaPods（`.podspec`）                  | `source_files` 包含 `../lib/shared/apple/**/*`                           |
 | Swift Package Manager（`Package.swift`） | 源文件须在包目录内；`sync_apple_spm_sources.sh` 同步到 `ios/`、`macos/` 的 `Sources/` |
 
 Dart 与原生 Pigeon 代码须用**同一版本** Pigeon 生成，勿跨包拆分生成物。
@@ -151,12 +151,12 @@ VideoSource.asset('assets/sample.mp4')
 
 ### API
 
-| 符号 | 说明 |
-|------|------|
-| `XueHuaVideoSnapshot.instance` | 插件单例 |
-| `extractCoverCandidates(source, {count, minBrightness, outputDir})` | 抽取封面候选帧 |
-| `VideoCoverFrame` | 结果：`image`（PNG `XFile`）、`position`、`brightness` |
-| `VideoSource` | 密封类型，支持 `network` / `file` / `asset` |
+| 符号                                                                  | 说明                                              |
+|---------------------------------------------------------------------|-------------------------------------------------|
+| `XueHuaVideoSnapshot.instance`                                      | 插件单例                                            |
+| `extractCoverCandidates(source, {count, minBrightness, outputDir})` | 抽取封面候选帧                                         |
+| `VideoCoverFrame`                                                   | 结果：`image`（PNG `XFile`）、`position`、`brightness` |
+| `VideoSource`                                                       | 密封类型，支持 `network` / `file` / `asset`            |
 
 ## 示例
 
